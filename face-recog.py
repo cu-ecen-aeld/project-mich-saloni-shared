@@ -1,5 +1,4 @@
 ######### source : https://github.com/ageitgey/face_recognition ############################
-#### usage: python3 face-recog.py #######
 
 ##########################Importing libraries required for the program #############################
 import face_recognition
@@ -9,12 +8,19 @@ from time import sleep
 from tkinter import *
 from PIL import Image
 from tkinter import messagebox
+import eye_game
+
+previous ="Unknown"
+count=0
 
 ###########################code for face recognition started##############################
 
 print("[INFO]..........face recognition started") 
 # start your webcam
 video_capture = cv2.VideoCapture(0)
+
+#frame = (video_capture, file)
+file = 'image.jpg'
 
 # load the picture whose face has to be recognised.
 michelle_image = face_recognition.load_image_file("/home/pi/photos/michelle.jpg")
@@ -59,7 +65,8 @@ while True:
         # Find all the faces and face encodings in the current frame of video
         face_locations = face_recognition.face_locations(rgb_small_frame)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
+        cv2.imwrite(file, small_frame)
+        
         face_names = []
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
@@ -71,6 +78,16 @@ while True:
             
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
+                direction = eye_game.get_eyeball_direction(file)
+                #eye_game.api.get_eyeball_direction(cv_image_array)
+                if previous != direction:
+                    previous=direction                  
+                else:
+                    count=1+count
+                    print(count)
+                    if (count>=20):
+                       print("Alert!! Alert!! Driver Drowsiness Detected")
+                       cv2.putText(frame, "DROWSINESS ALERT!", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
             face_names.append(name)
             #print(face_names)   
@@ -99,15 +116,11 @@ while True:
     cv2.imshow('Video', frame)
     
     
-    
-    
         # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        video_capture.release()
-        cv2.destroyAllWindows()
+      break
+      
+video_capture.release()
+cv2.destroyAllWindows()
        
         
-
-    # Release handle to the webcam
-
-root.mainloop()
